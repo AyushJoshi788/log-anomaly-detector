@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogGuard AI – Log Anomaly Detector</title>
+<style>
+  :root{--bg:#0f172a;--card:#1e293b;--text:#e2e8f0;--muted:#94a3b8;--accent:#38bdf8;--bad:#f87171}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  header{padding:28px 24px;border-bottom:1px solid #334155}
+  header h1{margin:0;font-size:1.6rem}
+  header p{margin:6px 0 0;color:var(--muted)}
+  main{max-width:1100px;margin:0 auto;padding:24px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+  .kpi{background:var(--card);border-radius:12px;padding:18px}
+  .kpi .l{color:var(--muted);font-size:.85rem}
+  .kpi .v{font-size:1.9rem;font-weight:700;margin-top:6px}
+  .kpi .v.bad{color:var(--bad)}
+  h2{margin:32px 0 12px}
+  .wrap{overflow-x:auto;background:var(--card);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #334155;vertical-align:top}
+  th{color:var(--muted);font-weight:600;white-space:nowrap}
+  .msg{padding:20px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛡️ LogGuard AI</h1>
+  <p>Autonomous Log Anomaly Detector — Isolation Forest + rule-based root cause</p>
+</header>
+<main>
+  <div class="kpis">
+    <div class="kpi"><div class="l">Total Logs</div><div class="v" id="total">–</div></div>
+    <div class="kpi"><div class="l">Anomalies</div><div class="v bad" id="count">–</div></div>
+    <div class="kpi"><div class="l">Anomaly Rate</div><div class="v" id="rate">–</div></div>
+  </div>
+  <h2>Detected Anomalies</h2>
+  <div class="wrap" id="out"><div class="msg">Loading…</div></div>
+</main>
+<script>
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  fetch('/api/results')
+    .then(r => r.json().then(d => { if (!r.ok) throw new Error(d.error || 'Server error'); return d; }))
+    .then(d => {
+      document.getElementById('total').textContent = d.total_logs.toLocaleString();
+      document.getElementById('count').textContent = d.anomaly_count.toLocaleString();
+      document.getElementById('rate').textContent = d.anomaly_rate + '%';
+      const rows = d.anomalies.map(a => `<tr>
+        <td>${esc(a.timestamp)}</td><td>${a.response_time_ms}</td><td>${a.error_code}</td>
+        <td>${a.failed_logins}</td><td>${a.cpu_usage}</td><td>${a.anomaly_score}</td>
+        <td>${esc(a.root_cause)}</td></tr>`).join('');
+      document.getElementById('out').innerHTML = `<table><thead><tr>
+        <th>Timestamp</th><th>Latency (ms)</th><th>Error</th><th>Failed logins</th>
+        <th>CPU %</th><th>Score</th><th>Root cause</th></tr></thead><tbody>${rows}</tbody></table>`;
+    })
+    .catch(e => {
+      document.getElementById('out').innerHTML =
+        `<div class="msg">Could not load data: ${esc(e.message)}. Run <code>python log_generator/generate_logs.py</code> first.</div>`;
+    });
+</script>
+</body>
+</html>
