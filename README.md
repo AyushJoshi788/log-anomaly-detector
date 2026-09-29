@@ -47,6 +47,34 @@ src/alert.py                     → console / email / Slack notification
 dashboard/app.py                 → Streamlit UI to visualize everything live
 
 
+
+## 📁 Project Structure
+
+```text
+log-anomaly-detector/
+├── dashboard/
+│   └── app.py
+├── frontend/
+│   └── index.html
+├── log_generator/
+│   └── generate_logs.py
+├── src/
+│   ├── ingest.py
+│   ├── anomaly_detector.py
+│   ├── root_cause.py
+│   ├── alert.py
+│   └── serve.py
+├── screenshort/
+│   └── image.png
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── logs.csv
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
 ## Quickstart
 
 bash
